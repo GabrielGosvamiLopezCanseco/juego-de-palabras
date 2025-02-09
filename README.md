@@ -155,22 +155,3 @@ Este comando iniciará el servidor en el puerto `8080`. Asegúrate de que esté 
 
 ### 4. Ejecutar el Juego
 Abre el archivo `index.html` en tu navegador para comenzar a jugar.
-
-## Contenedores (Opcional)
-Si deseas ejecutar el servidor en un contenedor Docker, usa el siguiente `Dockerfile`:
-
-```dockerfile
-FROM node:latest
-WORKDIR /app
-COPY package.json .
-RUN npm install
-COPY server.js .
-CMD ["node", "server.js"]
-EXPOSE 8080
-```
-
-Construcción y ejecución del contenedor:
-```sh
-docker build -t servidor-palabras .
-docker run -p 8080:8080 servidor-palabras
-```
