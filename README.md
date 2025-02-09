@@ -92,3 +92,85 @@ El juego también incluye una **tabla de puntuaciones** (Leaderboard) que se act
 
 Este resumen te ayudará a comprender el código y a realizar futuras mejoras. Si necesitas más detalles sobre alguna parte, dime y te lo explico con más profundidad. 🚀
 
+## Instalación y Configuración
+
+### 1. Instalación de Dependencias
+Para ejecutar este juego, necesitas tener instalado **Node.js** y **npm**. Si aún no los tienes, instálalos desde [nodejs.org](https://nodejs.org/).
+
+```sh
+# Verifica que Node.js está instalado
+node -v
+
+# Verifica que npm está instalado
+npm -v
+```
+
+### 2. Configuración del Servidor WebSocket
+El juego se conecta a un servidor WebSocket que gestiona la tabla de posiciones. Sigue estos pasos para configurarlo:
+
+1. Crea un nuevo directorio para el servidor:
+   ```sh
+   mkdir servidor-palabras && cd servidor-palabras
+   ```
+2. Inicializa un proyecto de Node.js:
+   ```sh
+   npm init -y
+   ```
+3. Instala **ws** para WebSockets:
+   ```sh
+   npm install ws
+   ```
+4. Crea un archivo `server.js` con el siguiente contenido:
+   ```js
+   const WebSocket = require('ws');
+
+   const server = new WebSocket.Server({ port: 8080 });
+   let leaderboard = [];
+
+   server.on('connection', socket => {
+       socket.send(JSON.stringify({ type: 'leaderboard', leaderboard }));
+       
+       socket.on('message', message => {
+           const data = JSON.parse(message);
+           if (data.type === 'new-score') {
+               leaderboard.push({ name: data.name, score: data.score });
+               leaderboard.sort((a, b) => b.score - a.score);
+               server.clients.forEach(client => {
+                   if (client.readyState === WebSocket.OPEN) {
+                       client.send(JSON.stringify({ type: 'leaderboard', leaderboard }));
+                   }
+               });
+           }
+       });
+   });
+   ```
+
+### 3. Ejecutar el Servidor
+Para iniciar el servidor WebSocket, usa:
+```sh
+node server.js
+```
+
+Este comando iniciará el servidor en el puerto `8080`. Asegúrate de que esté corriendo antes de abrir el juego en el navegador.
+
+### 4. Ejecutar el Juego
+Abre el archivo `index.html` en tu navegador para comenzar a jugar.
+
+## Contenedores (Opcional)
+Si deseas ejecutar el servidor en un contenedor Docker, usa el siguiente `Dockerfile`:
+
+```dockerfile
+FROM node:latest
+WORKDIR /app
+COPY package.json .
+RUN npm install
+COPY server.js .
+CMD ["node", "server.js"]
+EXPOSE 8080
+```
+
+Construcción y ejecución del contenedor:
+```sh
+docker build -t servidor-palabras .
+docker run -p 8080:8080 servidor-palabras
+```
